@@ -13,8 +13,8 @@
     "test": "ng test",
     "pretest:e2e": "npm run stamp",
     "test:e2e": "playwright test",
-    "release": "npm version minor -m \"Release v%s\" && npx vercel --prod --yes",
-    "release:major": "npm version major -m \"Release v%s\" && npx vercel --prod --yes"
+    "release": "npm version minor -m \"Release v%s\" && git push --follow-tags",
+    "release:major": "npm version major -m \"Release v%s\" && git push --follow-tags"
   },
   "private": true,
   "packageManager": "npm@11.19.1",
