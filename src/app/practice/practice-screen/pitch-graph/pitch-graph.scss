@@ -1,0 +1,12 @@
+:host {
+  display: block;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+}
+
+canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+}

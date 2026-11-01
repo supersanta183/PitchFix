@@ -1,0 +1,34 @@
+<main class="practice">
+  <header class="readout">
+    @if (reading(); as current) {
+      <p class="note" aria-hidden="true">{{ current.nearestNote.label }}</p>
+      <p class="detail" aria-hidden="true">{{ current.hz.toFixed(1) }} Hz</p>
+    } @else {
+      <p class="note muted" aria-hidden="true">–</p>
+      <p class="detail">{{ hint() }}</p>
+    }
+  </header>
+
+  <section class="stage" aria-label="Your pitch">
+    @if (needsHelp()) {
+      <app-microphone-help [status]="status()" />
+    } @else {
+      <app-pitch-graph class="graph" [trace]="livePitch.trace" />
+    }
+  </section>
+
+  <footer class="controls">
+    @if (livePitch.listening()) {
+      <button type="button" class="button secondary" (click)="stop()">Stop</button>
+    } @else {
+      <button
+        type="button"
+        class="button primary"
+        [disabled]="status() === 'starting'"
+        (click)="start()"
+      >
+        {{ needsHelp() ? 'Try again' : 'Start' }}
+      </button>
+    }
+  </footer>
+</main>

@@ -25,7 +25,8 @@ export class Note {
     }
     const [, letter, accidental, octave] = match;
     const accidentalOffset = accidental === '#' ? 1 : accidental === 'b' ? -1 : 0;
-    const midi = (Number(octave) + 1) * 12 + LETTER_OFFSETS[letter.toUpperCase()] + accidentalOffset;
+    const midi =
+      (Number(octave) + 1) * 12 + LETTER_OFFSETS[letter.toUpperCase()] + accidentalOffset;
     return Note.fromMidi(midi);
   }
 

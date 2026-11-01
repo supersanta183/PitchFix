@@ -1,0 +1,47 @@
+<section class="help" role="alert" aria-labelledby="mic-help-title">
+  @switch (status()) {
+    @case ('denied') {
+      <h2 id="mic-help-title">PitchFix can't hear you yet</h2>
+      <p>
+        Your browser is blocking the microphone. PitchFix only listens to work out your pitch:
+        nothing is recorded or sent anywhere.
+      </p>
+      <details open>
+        <summary>iPhone or iPad</summary>
+        <p>
+          In Safari, tap <strong>aA</strong> in the address bar, then
+          <strong>Website Settings</strong> → <strong>Microphone</strong> → <strong>Allow</strong>.
+          If you added PitchFix to your home screen, open the <strong>Settings</strong> app →
+          <strong>Apps</strong> → <strong>Safari</strong> → <strong>Microphone</strong> instead.
+        </p>
+      </details>
+      <details>
+        <summary>Android</summary>
+        <p>
+          In Chrome, tap the icon to the left of the address, then <strong>Permissions</strong> →
+          <strong>Microphone</strong> → <strong>Allow</strong>.
+        </p>
+      </details>
+      <details>
+        <summary>Computer</summary>
+        <p>
+          Click the icon to the left of the address bar and allow the <strong>Microphone</strong>.
+          On a Mac, also check <strong>System Settings</strong> →
+          <strong>Privacy &amp; Security</strong> → <strong>Microphone</strong>.
+        </p>
+      </details>
+      <p>Then tap <strong>Try again</strong> below.</p>
+    }
+    @case ('unsupported') {
+      <h2 id="mic-help-title">This browser can't use the microphone here</h2>
+      <p>
+        Try a recent version of Safari, Chrome, Edge or Firefox, and make sure the address starts
+        with <strong>https://</strong>.
+      </p>
+    }
+    @default {
+      <h2 id="mic-help-title">The microphone didn't start</h2>
+      <p>Check that a microphone is connected and that no other app (like a call) is using it.</p>
+    }
+  }
+</section>

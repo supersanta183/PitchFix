@@ -23,6 +23,7 @@ export function centsBetween(hz: number, referenceHz: number): number {
  */
 export function foldToNearestOctave(cents: number): number {
   const half = CENTS_PER_OCTAVE / 2;
-  const folded = (((cents + half) % CENTS_PER_OCTAVE) + CENTS_PER_OCTAVE) % CENTS_PER_OCTAVE - half;
+  const folded =
+    ((((cents + half) % CENTS_PER_OCTAVE) + CENTS_PER_OCTAVE) % CENTS_PER_OCTAVE) - half;
   return folded === 0 ? 0 : folded;
 }
