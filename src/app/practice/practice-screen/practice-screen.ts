@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from '@angular/core';
 import { LivePitch } from '../../listening/live-pitch';
 import { MicrophoneHelp } from '../../listening/microphone-help/microphone-help';
+import { BuildStamp } from '../../shared/build-stamp/build-stamp';
 import { ScreenWakeLock } from '../../shared/screen-wake-lock';
 import { PitchGraph } from './pitch-graph/pitch-graph';
 
 @Component({
   selector: 'app-practice-screen',
-  imports: [PitchGraph, MicrophoneHelp],
+  imports: [BuildStamp, PitchGraph, MicrophoneHelp],
   templateUrl: './practice-screen.html',
   styleUrl: './practice-screen.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

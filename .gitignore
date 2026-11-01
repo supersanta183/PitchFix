@@ -50,3 +50,6 @@ Thumbs.db
 /playwright/.cache/
 .vercel
 .env*
+
+# Generated at build time by scripts/stamp-build.mjs
+/src/app/shared/build-stamp/build-info.generated.ts

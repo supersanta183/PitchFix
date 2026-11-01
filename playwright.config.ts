@@ -26,7 +26,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npx ng serve --port 4300 --configuration production --prebundle=false',
+    command: 'npm start -- --port 4300 --configuration production --prebundle=false',
     url: 'http://localhost:4300',
     reuseExistingServer: true,
     timeout: 120_000,

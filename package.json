@@ -3,10 +3,15 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
+    "stamp": "node scripts/stamp-build.mjs",
+    "prestart": "npm run stamp",
     "start": "ng serve",
+    "prebuild": "npm run stamp",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
+    "pretest": "npm run stamp",
     "test": "ng test",
+    "pretest:e2e": "npm run stamp",
     "test:e2e": "playwright test"
   },
   "private": true,
