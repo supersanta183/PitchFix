@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   input,
@@ -21,15 +22,20 @@ const LABEL_GUTTER_PX = 36;
 const VIEWPORT_EASING = 0.12;
 const REDUCED_MOTION_FRAME_MS = 125;
 const MAX_BRIDGED_GAP_MS = 150;
+const OCTAVE_COPIES = [-2, -1, 1, 2];
 
 interface GraphColors {
   grid: string;
   gridStrong: string;
   label: string;
   line: string;
+  target: string;
 }
 
-/** Scrolling line of the singer's pitch over the last few seconds, on a grid of notes. */
+/**
+ * Scrolling line of the singer's pitch over the last few seconds, on a grid of
+ * notes, with the target note shown as a band as wide as the tolerance.
+ */
 @Component({
   selector: 'app-pitch-graph',
   template: `<canvas #canvas role="img" [attr.aria-label]="description()"></canvas>`,
@@ -38,18 +44,30 @@ interface GraphColors {
 })
 export class PitchGraph {
   readonly trace = input.required<PitchTrace>();
+  readonly target = input<Note | null>(null);
+  readonly toleranceCents = input(50);
+  /** Also draws fainter bands one and two octaves away from the target. */
+  readonly showOctaveCopies = input(true);
   readonly description = input('Graph of your pitch over the last few seconds');
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly reducedMotion = prefersReducedMotion();
   private viewport = new PitchViewport(A3_MIDI, VISIBLE_SEMITONES);
+  /** Where the viewport is heading; it eases towards this unless motion is reduced. */
+  private aim = this.viewport;
   private colors: GraphColors | null = null;
   private lastDrawMs = 0;
   private frameRequest = 0;
 
   constructor() {
     const destroyRef = inject(DestroyRef);
+    effect(() => {
+      const target = this.target();
+      if (target) {
+        this.aim = new PitchViewport(target.midi, VISIBLE_SEMITONES);
+      }
+    });
     afterNextRender(() => {
       const resizeObserver = new ResizeObserver(() => this.fitCanvasToHost());
       resizeObserver.observe(this.host.nativeElement);
@@ -97,16 +115,44 @@ export class PitchGraph {
     this.colors ??= this.readColors();
     this.moveViewport();
     this.drawNoteGrid(context, width, height, this.colors);
+    this.drawTargetBands(context, width, height, this.colors);
     this.drawPitchLine(context, width, height, this.colors);
   };
 
   private moveViewport(): void {
     const latest = this.trace().lastVoiced();
-    if (!latest) {
+    if (latest) {
+      this.aim = this.aim.follow(frequencyToMidi(latest.hz));
+    }
+    this.viewport = this.reducedMotion()
+      ? this.aim
+      : this.viewport.approach(this.aim, VIEWPORT_EASING);
+  }
+
+  private drawTargetBands(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    colors: GraphColors,
+  ): void {
+    const target = this.target();
+    if (!target) {
       return;
     }
-    const target = this.viewport.follow(frequencyToMidi(latest.hz));
-    this.viewport = this.reducedMotion() ? target : this.viewport.approach(target, VIEWPORT_EASING);
+    const halfBand = this.toleranceCents() / 100;
+    const copies = this.showOctaveCopies() ? OCTAVE_COPIES : [];
+    context.fillStyle = colors.target;
+    for (const octave of [0, ...copies]) {
+      const midi = target.midi + octave * 12;
+      const top = this.viewport.yFor(midi + halfBand, height);
+      const bottom = this.viewport.yFor(midi - halfBand, height);
+      if (bottom < 0 || top > height) {
+        continue;
+      }
+      context.globalAlpha = octave === 0 ? 0.3 : 0.12;
+      context.fillRect(LABEL_GUTTER_PX, top, width - LABEL_GUTTER_PX, bottom - top);
+    }
+    context.globalAlpha = 1;
   }
 
   private drawNoteGrid(
@@ -192,6 +238,7 @@ export class PitchGraph {
       gridStrong: read('--graph-grid-strong'),
       label: read('--graph-label'),
       line: read('--graph-line'),
+      target: read('--graph-target'),
     };
   }
 }

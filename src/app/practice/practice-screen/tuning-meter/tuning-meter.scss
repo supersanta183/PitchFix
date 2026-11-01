@@ -1,0 +1,80 @@
+.meter {
+  --verdict-color: var(--warn);
+  display: grid;
+  gap: 0.25rem;
+
+  &[data-verdict='on-pitch'] {
+    --verdict-color: var(--good);
+  }
+
+  &[data-verdict='idle'] {
+    --verdict-color: var(--text-muted);
+  }
+}
+
+.track {
+  --needle-size: 22px;
+  position: relative;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--surface-raised);
+}
+
+.zone {
+  width: calc((100% - var(--needle-size)) * var(--zone-fraction));
+  position: absolute;
+  inset-block: 0;
+  left: 50%;
+  translate: -50% 0;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--good) 35%, transparent);
+}
+
+.center {
+  position: absolute;
+  inset-block: -3px;
+  left: 50%;
+  width: 2px;
+  translate: -50% 0;
+  background: var(--good);
+}
+
+.needle {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--needle-size) / 2 + (100% - var(--needle-size)) * var(--needle-position));
+  width: var(--needle-size);
+  height: var(--needle-size);
+  translate: -50% -50%;
+  border: 3px solid var(--surface-page);
+  border-radius: 50%;
+  background: var(--verdict-color);
+  transition: left 80ms linear;
+}
+
+.labels {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.verdict {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin: 0;
+  min-height: 1.6em;
+}
+
+.message {
+  color: var(--verdict-color);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.cents {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}

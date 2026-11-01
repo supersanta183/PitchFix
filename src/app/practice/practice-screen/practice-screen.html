@@ -1,20 +1,34 @@
 <main class="practice">
   <app-version-label />
+
   <header class="readout">
-    @if (reading(); as current) {
-      <p class="note" aria-hidden="true">{{ current.nearestNote.label }}</p>
-      <p class="detail" aria-hidden="true">{{ current.hz.toFixed(1) }} Hz</p>
-    } @else {
-      <p class="note muted" aria-hidden="true">–</p>
-      <p class="detail">{{ hint() }}</p>
-    }
+    <div class="target">
+      <span class="caption">Target</span>
+      <span class="note" data-testid="target-note">{{ target().label }}</span>
+    </div>
+    <div class="sung">
+      <span class="caption">You</span>
+      <span class="note" data-testid="sung-note">{{ reading()?.nearestNote?.label ?? '–' }}</span>
+    </div>
   </header>
+
+  <app-tuning-meter
+    [judgement]="judgement()"
+    [toleranceCents]="rules.toleranceCents"
+    [idleMessage]="idleMessage()"
+  />
 
   <section class="stage" aria-label="Your pitch">
     @if (needsHelp()) {
       <app-microphone-help [status]="status()" />
     } @else {
-      <app-pitch-graph class="graph" [trace]="livePitch.trace" />
+      <app-pitch-graph
+        class="graph"
+        [trace]="livePitch.trace"
+        [target]="target()"
+        [toleranceCents]="rules.toleranceCents"
+        [showOctaveCopies]="rules.octaveForgiveness"
+      />
     }
   </section>
 
@@ -25,6 +39,14 @@
         {{ frame.hz.toFixed(1) }} Hz
       </p>
     }
+    <app-headphones-tip />
+    <div class="row">
+      <button type="button" class="button secondary" (click)="playNote()">
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+        Play note
+      </button>
+      <button type="button" class="button secondary" (click)="newNote()">New note</button>
+    </div>
     @if (livePitch.listening()) {
       <button type="button" class="button secondary" (click)="stop()">Stop</button>
     } @else {

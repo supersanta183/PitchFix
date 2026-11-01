@@ -1,25 +1,62 @@
-import { expect, test } from '@playwright/test';
+import { expect, Page, test } from '@playwright/test';
 
-test.describe('Live pitch', () => {
-  test('shows the note being sung after the singer taps Start', async ({ page }) => {
-    await page.goto('/');
-    await expect(page.getByText('Tap Start, then sing any note.')).toBeVisible();
+/** The fake microphone sings A3. These fix which target note the app picks from D3–D4. */
+const TARGET_A3 = 0.56;
+const TARGET_D3 = 0;
+
+async function openWithTarget(page: Page, random: number): Promise<void> {
+  await page.addInitScript((value) => (Math.random = () => value), random);
+  await page.goto('/');
+}
+
+test.describe('Matching the target note', () => {
+  test('shows the sung note and confirms it matches the target', async ({ page }) => {
+    await openWithTarget(page, TARGET_A3);
+    await expect(page.getByTestId('target-note')).toHaveText('A3');
+    await expect(page.getByText('Play the note, then tap Start')).toBeVisible();
 
     await page.getByRole('button', { name: 'Start' }).click();
 
-    await expect(page.locator('.readout .note')).toHaveText('A3', { timeout: 10_000 });
-    await expect(page.getByRole('button', { name: 'Stop' })).toBeVisible();
+    await expect(page.getByTestId('sung-note')).toHaveText('A3', { timeout: 10_000 });
+    await expect(page.getByText('Spot on!')).toBeVisible();
+  });
+
+  test('tells the singer which way to move when off target', async ({ page }) => {
+    await openWithTarget(page, TARGET_D3);
+    await expect(page.getByTestId('target-note')).toHaveText('D3');
+
+    await page.getByRole('button', { name: 'Start' }).click();
+
+    await expect(page.getByText('Too low – go up')).toBeVisible({ timeout: 10_000 });
+  });
+
+  test('stops listening while the reference note plays, then listens again', async ({ page }) => {
+    await openWithTarget(page, TARGET_A3);
+    await page.getByRole('button', { name: 'Start' }).click();
+    await expect(page.getByTestId('sung-note')).toHaveText('A3', { timeout: 10_000 });
+
+    await page.getByRole('button', { name: 'Play note' }).click();
+
+    await expect(page.getByText('Listen…')).toBeVisible();
+    await expect(page.getByTestId('sung-note')).toHaveText('–');
+    await expect(page.getByTestId('sung-note')).toHaveText('A3', { timeout: 5_000 });
+  });
+
+  test('picks a different note on request', async ({ page }) => {
+    await openWithTarget(page, TARGET_A3);
+    await page.getByRole('button', { name: 'New note' }).click();
+    await expect(page.getByTestId('target-note')).not.toHaveText('A3');
   });
 
   test('stops listening when the singer taps Stop', async ({ page }) => {
-    await page.goto('/');
+    await openWithTarget(page, TARGET_A3);
     await page.getByRole('button', { name: 'Start' }).click();
-    await expect(page.locator('.readout .note')).toHaveText('A3', { timeout: 10_000 });
+    await expect(page.getByTestId('sung-note')).toHaveText('A3', { timeout: 10_000 });
 
     await page.getByRole('button', { name: 'Stop' }).click();
 
     await expect(page.getByRole('button', { name: 'Start' })).toBeVisible();
-    await expect(page.getByText('Tap Start, then sing any note.')).toBeVisible();
+    await expect(page.getByTestId('sung-note')).toHaveText('–');
   });
 });
 

@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { Note } from '../pitch/note';
 import { SharedAudioContext } from '../shared/audio/shared-audio-context';
+import { SpeakerActivity } from '../shared/audio/speaker-activity';
 import { Microphone } from './microphone';
 import { PitchFrame } from './pitch-frame';
 import { PitchStabilizer } from './pitch-stabilizer';
@@ -12,6 +13,8 @@ const ANALYSIS_BUFFER_SIZE = 2048;
 const TRACE_WINDOW_MS = 6000;
 /** Keeps the note readout steady through detector hiccups instead of flickering. */
 const READOUT_HOLD_MS = 150;
+/** Room echo after the reference tone stops, during which the mic still hears it. */
+const SPEAKER_ECHO_MS = 150;
 
 export interface LivePitchReading {
   readonly hz: number;
@@ -24,6 +27,7 @@ export interface LivePitchReading {
 export class LivePitch {
   private readonly audio = inject(SharedAudioContext);
   private readonly microphone = inject(Microphone);
+  private readonly speaker = inject(SpeakerActivity);
   private readonly detector = new VoicePitchDetector(ANALYSIS_BUFFER_SIZE);
   private readonly stabilizer = new PitchStabilizer();
   private readonly samples = new Float32Array(ANALYSIS_BUFFER_SIZE);
@@ -75,6 +79,10 @@ export class LivePitch {
       this.stop();
       return;
     }
+    if (this.speaker.wasSoundingRecently(nowMs, SPEAKER_ECHO_MS)) {
+      this.ignoreWhileSpeakerSounds(nowMs);
+      return;
+    }
     this.analyser.getFloatTimeDomainData(this.samples);
     const frame = this.detector.analyse(this.samples, this.analyser.context.sampleRate);
     const hz = this.stabilizer.next(frame, nowMs);
@@ -89,6 +97,14 @@ export class LivePitch {
     }
     this.frameRequest = requestAnimationFrame(this.analyseFrame);
   };
+
+  private ignoreWhileSpeakerSounds(nowMs: number): void {
+    this.stabilizer.reset();
+    this.trace.add(nowMs, null);
+    this.readingSignal.set(null);
+    this.rawFrameSignal.set(null);
+    this.frameRequest = requestAnimationFrame(this.analyseFrame);
+  }
 }
 
 function toReading(hz: number): LivePitchReading {
