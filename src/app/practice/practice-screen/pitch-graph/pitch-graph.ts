@@ -7,6 +7,7 @@ import {
   ElementRef,
   inject,
   input,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { PitchTrace } from '../../../listening/pitch-trace';
@@ -45,6 +46,8 @@ interface GraphColors {
 export class PitchGraph {
   readonly trace = input.required<PitchTrace>();
   readonly target = input<Note | null>(null);
+  /** A note to start from, e.g. the beginning of a slide; drawn as an outlined band. */
+  readonly guide = input<Note | null>(null);
   readonly toleranceCents = input(50);
   /** Also draws fainter bands one and two octaves away from the target. */
   readonly showOctaveCopies = input(true);
@@ -64,8 +67,10 @@ export class PitchGraph {
     const destroyRef = inject(DestroyRef);
     effect(() => {
       const target = this.target();
+      const guide = untracked(this.guide);
       if (target) {
-        this.aim = new PitchViewport(target.midi, VISIBLE_SEMITONES);
+        const center = guide ? (target.midi + guide.midi) / 2 : target.midi;
+        this.aim = new PitchViewport(center, VISIBLE_SEMITONES);
       }
     });
     afterNextRender(() => {
@@ -116,6 +121,7 @@ export class PitchGraph {
     this.moveViewport();
     this.drawNoteGrid(context, width, height, this.colors);
     this.drawTargetBands(context, width, height, this.colors);
+    this.drawGuideBand(context, width, height, this.colors);
     this.drawPitchLine(context, width, height, this.colors);
   };
 
@@ -228,6 +234,27 @@ export class PitchGraph {
       context.arc(xFor(lastVoiced.atMs), yFor(lastVoiced.hz), 8, 0, Math.PI * 2);
       context.fill();
     }
+  }
+
+  private drawGuideBand(
+    context: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    colors: GraphColors,
+  ): void {
+    const guide = this.guide();
+    if (!guide) {
+      return;
+    }
+    const halfBand = this.toleranceCents() / 100;
+    const top = this.viewport.yFor(guide.midi + halfBand, height);
+    const bottom = this.viewport.yFor(guide.midi - halfBand, height);
+    context.save();
+    context.strokeStyle = colors.target;
+    context.lineWidth = 2;
+    context.setLineDash([8, 6]);
+    context.strokeRect(LABEL_GUTTER_PX + 1, top, width - LABEL_GUTTER_PX - 2, bottom - top);
+    context.restore();
   }
 
   private readColors(): GraphColors {

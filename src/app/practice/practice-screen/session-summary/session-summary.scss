@@ -52,3 +52,43 @@ li {
   color: var(--good);
   font-weight: 600;
 }
+
+.rounds {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: grid;
+    gap: 0.35rem;
+    padding: 0;
+    border: 0;
+  }
+}
+
+.round-label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.pill {
+  padding: 0.3rem 0.55rem;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.9rem;
+
+  &.matched {
+    border-color: var(--good);
+    color: var(--good);
+  }
+}

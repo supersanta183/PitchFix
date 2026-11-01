@@ -27,7 +27,7 @@ async function open(page: Page, random: number, settings?: object): Promise<void
 test.describe('Single notes session', () => {
   test('plays the target, then counts it once held in tune', async ({ page }) => {
     await open(page, TARGET_A3);
-    await expect(page.getByText('Tap Start for 10 notes')).toBeVisible();
+    await expect(page.getByText('Tap Start for single notes')).toBeVisible();
 
     await page.getByRole('button', { name: 'Start' }).click();
 

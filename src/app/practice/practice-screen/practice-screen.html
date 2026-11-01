@@ -9,16 +9,13 @@
 
   <header class="readout">
     <div class="target">
-      <span class="caption">
-        @if (inSession()) {
-          Note {{ session.number() }} of {{ session.total }}
-        } @else {
-          Target
-        }
+      <span class="caption" data-testid="progress">
+        {{ session.active() ? progressCaption() : 'Target' }}
       </span>
-      <span class="note" data-testid="target-note">
-        {{ inSession() ? session.target()?.label : '–' }}
-      </span>
+      <span class="note" data-testid="target-note">{{ targetLabel() }}</span>
+      @if (targetHint(); as hint) {
+        <span class="target-hint" data-testid="target-hint">{{ hint }}</span>
+      }
     </div>
     <div class="sung">
       <span class="caption">You</span>
@@ -29,7 +26,7 @@
   <app-tuning-meter
     [judgement]="session.judgement()"
     [toleranceCents]="settings().toleranceCents"
-    [idleMessage]="idleMessage()"
+    [idleMessage]="instruction()"
     [holdProgress]="session.holdProgress()"
     [matched]="session.phase() === 'matched'"
   />
@@ -38,12 +35,15 @@
     @if (needsHelp()) {
       <app-microphone-help [status]="status()" />
     } @else if (session.phase() === 'finished') {
-      <app-session-summary [outcomes]="session.outcomes()" />
+      <app-session-summary [outcomes]="session.outcomes()" [roundName]="session.mode().roundName" />
+    } @else if (session.phase() === 'ready') {
+      <app-mode-picker [selected]="session.mode()" (choose)="session.chooseMode($event)" />
     } @else {
       <app-pitch-graph
         class="graph"
         [trace]="livePitch.trace"
-        [target]="inSession() ? session.target() : null"
+        [target]="session.targetRevealed() ? session.target() : null"
+        [guide]="session.slideFrom()"
         [toleranceCents]="settings().toleranceCents"
         [showOctaveCopies]="settings().octaveForgiveness"
       />
@@ -57,23 +57,37 @@
         {{ frame.hz.toFixed(1) }} Hz
       </p>
     }
-    @if (inSession()) {
+    @if (session.active()) {
       <app-headphones-tip />
       <div class="row">
-        <button type="button" class="button secondary" (click)="session.playTarget()">
+        <button
+          type="button"
+          class="button secondary"
+          [disabled]="session.mode().fromMemory || session.phase() !== 'singing'"
+          (click)="session.replay()"
+        >
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
           Play again
         </button>
         <button
           type="button"
           class="button secondary"
-          [disabled]="session.phase() !== 'singing'"
+          [disabled]="session.phase() === 'matched'"
           (click)="session.skip()"
         >
           Skip
         </button>
       </div>
       <button type="button" class="button secondary" (click)="session.stop()">Stop</button>
+    } @else if (session.phase() === 'finished') {
+      <div class="row">
+        <button type="button" class="button secondary" (click)="session.backToChoosing()">
+          Change exercise
+        </button>
+        <button type="button" class="button primary" (click)="session.start()">
+          Practise again
+        </button>
+      </div>
     } @else {
       <button
         type="button"
@@ -81,13 +95,7 @@
         [disabled]="status() === 'starting'"
         (click)="session.start()"
       >
-        @if (needsHelp()) {
-          Try again
-        } @else if (session.phase() === 'finished') {
-          Practise again
-        } @else {
-          Start
-        }
+        {{ needsHelp() ? 'Try again' : 'Start' }}
       </button>
     }
   </footer>

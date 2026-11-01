@@ -1,0 +1,55 @@
+:host {
+  display: block;
+  overflow-y: auto;
+}
+
+.modes {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0 1rem 1rem;
+  border: 0;
+}
+
+legend {
+  padding: 1rem 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.mode {
+  position: relative;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.85rem 1rem;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-page);
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--surface-raised);
+  }
+
+  &:has(input:focus-visible) {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+}
+
+.name {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.description {
+  color: var(--text-muted);
+  line-height: 1.4;
+}

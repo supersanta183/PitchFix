@@ -83,6 +83,10 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
+
+  .button {
+    padding-inline: 0.75rem;
+  }
 }
 
 .icon {
@@ -99,4 +103,11 @@
   font-size: 0.9rem;
   font-variant-numeric: tabular-nums;
   text-align: center;
+}
+
+.target-hint {
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
