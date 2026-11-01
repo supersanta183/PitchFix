@@ -1,5 +1,10 @@
 <main class="practice">
-  <app-version-label />
+  <nav class="topbar">
+    <a class="range-link" routerLink="/range">
+      Range {{ range().lowest.label }}–{{ range().highest.label }}
+    </a>
+    <app-version-label />
+  </nav>
 
   <header class="readout">
     <div class="target">

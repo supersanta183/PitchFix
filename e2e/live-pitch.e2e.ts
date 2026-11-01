@@ -1,11 +1,17 @@
 import { expect, Page, test } from '@playwright/test';
 
-/** The fake microphone sings A3. These fix which target note the app picks from D3–D4. */
+/** The fake microphone sings A3. These fix which target note the app picks from a D3–D4 range. */
 const TARGET_A3 = 0.56;
 const TARGET_D3 = 0;
 
 async function openWithTarget(page: Page, random: number): Promise<void> {
   await page.addInitScript((value) => (Math.random = () => value), random);
+  await page.addInitScript(() =>
+    localStorage.setItem(
+      'pitchfix.vocal-range',
+      JSON.stringify({ version: 1, lowestMidi: 50, highestMidi: 62 }),
+    ),
+  );
   await page.goto('/');
 }
 
@@ -66,7 +72,7 @@ test.describe('Blocked microphone', () => {
       navigator.mediaDevices.getUserMedia = () =>
         Promise.reject(new DOMException('Blocked', 'NotAllowedError'));
     });
-    await page.goto('/');
+    await openWithTarget(page, TARGET_A3);
 
     await page.getByRole('button', { name: 'Start' }).click();
 

@@ -1,0 +1,45 @@
+<main class="screen">
+  <header>
+    @if (hasSavedRange) {
+      <a class="text-link back" routerLink="/">← Back to practice</a>
+    }
+    <h1>Your range</h1>
+  </header>
+
+  <section class="content">
+    <p class="lead">
+      Exercises only use notes from your lowest to your highest comfortable note. Tap a note to hear
+      it.
+    </p>
+
+    <app-note-stepper
+      label="Highest note"
+      data-testid="highest"
+      [note]="range().highest"
+      [canLower]="range().canMoveHighestBy(-1)"
+      [canRaise]="range().canMoveHighestBy(1)"
+      (lower)="moveHighest(-1)"
+      (raise)="moveHighest(1)"
+      (play)="play(range().highest)"
+    />
+    <app-note-stepper
+      label="Lowest note"
+      data-testid="lowest"
+      [note]="range().lowest"
+      [canLower]="range().canMoveLowestBy(-1)"
+      [canRaise]="range().canMoveLowestBy(1)"
+      (lower)="moveLowest(-1)"
+      (raise)="moveLowest(1)"
+      (play)="play(range().lowest)"
+    />
+
+    <p class="span" aria-live="polite">
+      {{ range().lowest.label }} to {{ range().highest.label }} · {{ spanDescription() }}
+    </p>
+  </section>
+
+  <footer class="actions">
+    <button type="button" class="button primary" (click)="save()">Save range</button>
+    <a class="button secondary" routerLink="/range/test">Find my range by singing</a>
+  </footer>
+</main>

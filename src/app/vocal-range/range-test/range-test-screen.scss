@@ -1,0 +1,78 @@
+.step {
+  margin: 0 0 0.25rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lead {
+  font-size: 1.1rem;
+}
+
+.how {
+  display: grid;
+  gap: 0.5rem;
+  padding-inline-start: 1.25rem;
+  line-height: 1.5;
+}
+
+.instructions {
+  margin-top: 0;
+  color: var(--text-muted);
+}
+
+.live,
+.heard {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  padding: 2rem 1rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+}
+
+.heard {
+  border: 2px solid var(--good);
+}
+
+.big-note {
+  font-size: clamp(3.5rem, 20vw, 5.5rem);
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.caption {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.hold-bar {
+  width: min(16rem, 100%);
+  height: 12px;
+  border-radius: 6px;
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.hold-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--good);
+}
+
+.warning {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  color: var(--warn);
+  font-weight: 600;
+}

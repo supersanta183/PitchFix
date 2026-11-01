@@ -1,0 +1,100 @@
+<main class="screen">
+  <header>
+    @switch (test().step) {
+      @case ('lowest') {
+        <p class="step">Step 1 of 2</p>
+        <h1>
+          {{ listening() ? 'Sing your lowest comfortable note' : "Let's find your singing range" }}
+        </h1>
+      }
+      @case ('highest') {
+        <p class="step">Step 2 of 2</p>
+        <h1>Now sing your highest comfortable note</h1>
+      }
+      @case ('review') {
+        <h1>
+          Your range is {{ test().range?.lowest?.label }} to {{ test().range?.highest?.label }}
+        </h1>
+      }
+    }
+  </header>
+
+  <section class="content">
+    @if (needsHelp()) {
+      <app-microphone-help [status]="status()" />
+    } @else if (test().step === 'review') {
+      <p class="lead">
+        That's {{ spanDescription() }}. Your exercises will only use notes in this range.
+      </p>
+      <p>You can change it any time.</p>
+    } @else if (!listening()) {
+      <p class="lead">
+        Everyone's voice is different. We'll find the notes you can sing comfortably, so exercises
+        never ask for notes that strain your voice.
+      </p>
+      <ol class="how">
+        <li>Sing a relaxed "ah" and slide down to the lowest note that still feels easy.</li>
+        <li>Hold it for a second.</li>
+        <li>Then do the same going up.</li>
+      </ol>
+      <p>Don't push. Comfortable is what we're after.</p>
+    } @else {
+      <p class="instructions">
+        @if (test().step === 'lowest') {
+          Slide down to a low note that still feels easy, then hold it.
+        } @else {
+          Slide up to a high note that doesn't strain, then hold it.
+        }
+      </p>
+
+      @if (heard(); as note) {
+        <div class="heard" role="status">
+          <p class="caption">
+            {{ test().step === 'lowest' ? 'Your lowest note' : 'Your highest note' }}
+          </p>
+          <p class="big-note" data-testid="heard-note">{{ note.label }}</p>
+        </div>
+      } @else {
+        <div class="live" aria-hidden="true">
+          <p class="big-note" data-testid="live-note">{{ hold().note?.label ?? '–' }}</p>
+          <div class="hold-bar">
+            <div class="hold-fill" [style.width.%]="hold().progress * 100"></div>
+          </div>
+          <p class="caption">{{ hold().note ? 'Hold it…' : 'Listening…' }}</p>
+        </div>
+        @if (tooClose(); as note) {
+          <p class="warning" role="alert">
+            {{ note.label }} is too close to your lowest note ({{ test().lowest?.label }}). Try a
+            higher note.
+          </p>
+        }
+      }
+    }
+  </section>
+
+  <footer class="actions">
+    @if (test().step === 'review') {
+      <button type="button" class="button primary" (click)="saveAndPractise()">
+        Save and start practising
+      </button>
+      <button type="button" class="button secondary" (click)="startOver()">Start over</button>
+    } @else if (heard(); as note) {
+      <button type="button" class="button primary" (click)="accept(note)">
+        Use {{ note.label }}
+      </button>
+      <button type="button" class="button secondary" (click)="tryAgain()">Try again</button>
+    } @else if (!listening()) {
+      <button
+        type="button"
+        class="button primary"
+        [disabled]="status() === 'starting'"
+        (click)="start()"
+      >
+        {{ needsHelp() ? 'Try again' : 'Start' }}
+      </button>
+      <a class="button secondary" routerLink="/range">Set my range by hand</a>
+    } @else {
+      <a class="button secondary" routerLink="/range">Set my range by hand</a>
+    }
+  </footer>
+</main>

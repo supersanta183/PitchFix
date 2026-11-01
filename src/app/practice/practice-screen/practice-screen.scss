@@ -8,6 +8,22 @@
   padding: calc(env(safe-area-inset-top) + 0.25rem) 1rem 0;
 }
 
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.range-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
 .readout {
   display: flex;
   justify-content: space-between;

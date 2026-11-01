@@ -6,24 +6,23 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { LivePitch } from '../../listening/live-pitch';
 import { MicrophoneHelp } from '../../listening/microphone-help/microphone-help';
-import { Note } from '../../pitch/note';
 import { ReferenceTone } from '../../reference-tone/reference-tone';
 import { VersionLabel } from '../../shared/app-version/version-label';
 import { ScreenWakeLock } from '../../shared/screen-wake-lock';
+import { SUGGESTED_STARTING_RANGE } from '../../vocal-range/vocal-range';
+import { VocalRangeStore } from '../../vocal-range/vocal-range.store';
 import { pickRandomNote } from '../exercises/random-note';
 import { DEFAULT_MATCH_RULES, judgePitch } from '../matching/pitch-judgement';
 import { HeadphonesTip } from './headphones-tip/headphones-tip';
 import { PitchGraph } from './pitch-graph/pitch-graph';
 import { TuningMeter } from './tuning-meter/tuning-meter';
 
-/** Comfortable for most voices; used until the singer has set up their own range. */
-const PROVISIONAL_RANGE = { low: Note.fromLabel('D3'), high: Note.fromLabel('D4') };
-
 @Component({
   selector: 'app-practice-screen',
-  imports: [VersionLabel, PitchGraph, TuningMeter, HeadphonesTip, MicrophoneHelp],
+  imports: [RouterLink, VersionLabel, PitchGraph, TuningMeter, HeadphonesTip, MicrophoneHelp],
   templateUrl: './practice-screen.html',
   styleUrl: './practice-screen.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,11 +30,14 @@ const PROVISIONAL_RANGE = { low: Note.fromLabel('D3'), high: Note.fromLabel('D4'
 export class PracticeScreen {
   private readonly wakeLock = inject(ScreenWakeLock);
   private readonly referenceTone = inject(ReferenceTone);
+  private readonly rangeStore = inject(VocalRangeStore);
   protected readonly livePitch = inject(LivePitch);
+  /** The route guard ensures a saved range; the fallback only covers it being cleared meanwhile. */
+  protected readonly range = computed(() => this.rangeStore.range() ?? SUGGESTED_STARTING_RANGE);
 
   protected readonly rules = DEFAULT_MATCH_RULES;
   protected readonly target = signal(
-    pickRandomNote(PROVISIONAL_RANGE.low, PROVISIONAL_RANGE.high, null),
+    pickRandomNote(this.range().lowest, this.range().highest, null),
   );
   protected readonly reading = this.livePitch.reading;
   protected readonly tonePlaying = this.referenceTone.playing;
@@ -81,7 +83,7 @@ export class PracticeScreen {
 
   protected newNote(): void {
     this.target.update((previous) =>
-      pickRandomNote(PROVISIONAL_RANGE.low, PROVISIONAL_RANGE.high, previous),
+      pickRandomNote(this.range().lowest, this.range().highest, previous),
     );
     this.playNote();
   }
