@@ -1,0 +1,54 @@
+:host {
+  display: block;
+  overflow-y: auto;
+}
+
+.summary {
+  padding: 1.25rem;
+}
+
+h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.headline {
+  margin: 0.25rem 0 1rem;
+  color: var(--text-muted);
+}
+
+.notes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(6.5rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+li {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.6rem 0.75rem;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+
+  &.matched {
+    border-color: var(--good);
+  }
+}
+
+.label {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.result {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.matched .result {
+  color: var(--good);
+  font-weight: 600;
+}

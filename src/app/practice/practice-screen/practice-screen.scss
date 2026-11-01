@@ -11,11 +11,14 @@
 .topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+  gap: 1.25rem;
+
+  app-version-label {
+    margin-inline-start: auto;
+  }
 }
 
-.range-link {
+.top-link {
   display: inline-flex;
   align-items: center;
   min-height: 44px;

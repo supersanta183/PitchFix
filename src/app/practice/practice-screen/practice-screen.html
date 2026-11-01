@@ -1,15 +1,24 @@
 <main class="practice">
   <nav class="topbar">
-    <a class="range-link" routerLink="/range">
+    <a class="top-link" routerLink="/range">
       Range {{ range().lowest.label }}–{{ range().highest.label }}
     </a>
+    <a class="top-link" routerLink="/settings">Settings</a>
     <app-version-label />
   </nav>
 
   <header class="readout">
     <div class="target">
-      <span class="caption">Target</span>
-      <span class="note" data-testid="target-note">{{ target().label }}</span>
+      <span class="caption">
+        @if (inSession()) {
+          Note {{ session.number() }} of {{ session.total }}
+        } @else {
+          Target
+        }
+      </span>
+      <span class="note" data-testid="target-note">
+        {{ inSession() ? session.target()?.label : '–' }}
+      </span>
     </div>
     <div class="sung">
       <span class="caption">You</span>
@@ -18,21 +27,25 @@
   </header>
 
   <app-tuning-meter
-    [judgement]="judgement()"
-    [toleranceCents]="rules.toleranceCents"
+    [judgement]="session.judgement()"
+    [toleranceCents]="settings().toleranceCents"
     [idleMessage]="idleMessage()"
+    [holdProgress]="session.holdProgress()"
+    [matched]="session.phase() === 'matched'"
   />
 
   <section class="stage" aria-label="Your pitch">
     @if (needsHelp()) {
       <app-microphone-help [status]="status()" />
+    } @else if (session.phase() === 'finished') {
+      <app-session-summary [outcomes]="session.outcomes()" />
     } @else {
       <app-pitch-graph
         class="graph"
         [trace]="livePitch.trace"
-        [target]="target()"
-        [toleranceCents]="rules.toleranceCents"
-        [showOctaveCopies]="rules.octaveForgiveness"
+        [target]="inSession() ? session.target() : null"
+        [toleranceCents]="settings().toleranceCents"
+        [showOctaveCopies]="settings().octaveForgiveness"
       />
     }
   </section>
@@ -44,24 +57,37 @@
         {{ frame.hz.toFixed(1) }} Hz
       </p>
     }
-    <app-headphones-tip />
-    <div class="row">
-      <button type="button" class="button secondary" (click)="playNote()">
-        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
-        Play note
-      </button>
-      <button type="button" class="button secondary" (click)="newNote()">New note</button>
-    </div>
-    @if (livePitch.listening()) {
-      <button type="button" class="button secondary" (click)="stop()">Stop</button>
+    @if (inSession()) {
+      <app-headphones-tip />
+      <div class="row">
+        <button type="button" class="button secondary" (click)="session.playTarget()">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" /></svg>
+          Play again
+        </button>
+        <button
+          type="button"
+          class="button secondary"
+          [disabled]="session.phase() !== 'singing'"
+          (click)="session.skip()"
+        >
+          Skip
+        </button>
+      </div>
+      <button type="button" class="button secondary" (click)="session.stop()">Stop</button>
     } @else {
       <button
         type="button"
         class="button primary"
         [disabled]="status() === 'starting'"
-        (click)="start()"
+        (click)="session.start()"
       >
-        {{ needsHelp() ? 'Try again' : 'Start' }}
+        @if (needsHelp()) {
+          Try again
+        } @else if (session.phase() === 'finished') {
+          Practise again
+        } @else {
+          Start
+        }
       </button>
     }
   </footer>

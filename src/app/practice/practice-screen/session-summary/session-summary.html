@@ -1,0 +1,18 @@
+<section class="summary" aria-labelledby="summary-title">
+  <h2 id="summary-title" data-testid="summary-score">
+    You matched {{ matchedCount() }} of {{ outcomes().length }} notes
+  </h2>
+  <p class="headline">{{ headline() }}</p>
+  <ol class="notes">
+    @for (outcome of outcomes(); track $index) {
+      <li [class.matched]="outcome.matched">
+        <span class="label">{{ outcome.target.label }}</span>
+        @if (outcome.matched) {
+          <span class="result">✓ {{ ((outcome.timeToMatchMs ?? 0) / 1000).toFixed(1) }} s</span>
+        } @else {
+          <span class="result">Missed</span>
+        }
+      </li>
+    }
+  </ol>
+</section>

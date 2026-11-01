@@ -1,10 +1,13 @@
-<div class="meter" [attr.data-verdict]="judgement()?.verdict ?? 'idle'">
+<div class="meter" [attr.data-verdict]="state()">
   <div class="track" aria-hidden="true">
     <div class="zone" [style.--zone-fraction]="zoneWidthPercent() / 100"></div>
     <div class="center"></div>
     @if (judgement()) {
       <div class="needle" [style.--needle-position]="needlePercent() / 100"></div>
     }
+  </div>
+  <div class="hold" aria-hidden="true">
+    <div class="hold-fill" [style.width.%]="holdProgress() * 100"></div>
   </div>
   <div class="labels" aria-hidden="true">
     <span>Low</span>

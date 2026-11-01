@@ -1,0 +1,69 @@
+<main class="screen">
+  <header>
+    <a class="text-link back" routerLink="/">← Back to practice</a>
+    <h1>Settings</h1>
+  </header>
+
+  <section class="content">
+    <fieldset>
+      <legend>How close is close enough?</legend>
+      <p class="help">
+        100 cents is one step on the piano. Start relaxed and tighten it as you improve.
+      </p>
+      <div class="choices">
+        @for (tolerance of tolerances; track tolerance.cents) {
+          <label class="choice">
+            <input
+              type="radio"
+              name="tolerance"
+              [value]="tolerance.cents"
+              [checked]="settings().toleranceCents === tolerance.cents"
+              (change)="chooseTolerance(tolerance.cents)"
+            />
+            <span class="choice-name">{{ tolerance.name }}</span>
+            <span class="choice-detail">±{{ tolerance.cents }} cents</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>How long to hold each note</legend>
+      <p class="help">A note counts once you've held it in tune this long.</p>
+      <div class="choices compact">
+        @for (seconds of holdSeconds; track seconds) {
+          <label class="choice">
+            <input
+              type="radio"
+              name="hold"
+              [value]="seconds"
+              [checked]="settings().holdSeconds === seconds"
+              (change)="chooseHoldSeconds(seconds)"
+            />
+            <span class="choice-name">{{ seconds }} s</span>
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <label class="switch-row">
+      <span>
+        <span class="switch-title">Any octave counts</span>
+        <span class="help">
+          Sing the right note higher or lower than the piano, if that's easier for your voice.
+        </span>
+      </span>
+      <input
+        type="checkbox"
+        role="switch"
+        class="switch"
+        [checked]="settings().octaveForgiveness"
+        (change)="setOctaveForgiveness($any($event.target).checked)"
+      />
+    </label>
+  </section>
+
+  <footer class="actions">
+    <a class="button primary" routerLink="/">Done</a>
+  </footer>
+</main>

@@ -1,0 +1,119 @@
+.back {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  padding-block: 0.5rem;
+}
+
+fieldset {
+  margin: 0 0 1.75rem;
+  padding: 0;
+  border: 0;
+}
+
+legend {
+  padding: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.help {
+  display: block;
+  margin: 0.25rem 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem;
+
+  &.compact {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.choice {
+  position: relative;
+  display: grid;
+  place-content: center;
+  min-height: 56px;
+  padding: 0.5rem;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  text-align: center;
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &:has(input:checked) {
+    border-color: var(--accent);
+    background: var(--surface-raised);
+  }
+
+  &:has(input:focus-visible) {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 3px;
+  }
+}
+
+.choice-name {
+  font-weight: 700;
+}
+
+.choice-detail {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.switch-title {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.switch {
+  flex: none;
+  appearance: none;
+  position: relative;
+  width: 56px;
+  height: 32px;
+  margin: 0;
+  border-radius: 16px;
+  background: var(--border);
+  cursor: pointer;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--text);
+  }
+
+  &:checked {
+    background: var(--good);
+
+    &::after {
+      translate: 24px 0;
+      background: var(--surface-page);
+    }
+  }
+}

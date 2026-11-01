@@ -21,5 +21,11 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./vocal-range/range-editor/range-editor-screen').then((m) => m.RangeEditorScreen),
   },
+  {
+    path: 'settings',
+    title: 'Settings · PitchFix',
+    loadComponent: () =>
+      import('./practice/settings/settings-screen').then((m) => m.SettingsScreen),
+  },
   { path: '**', redirectTo: '' },
 ];

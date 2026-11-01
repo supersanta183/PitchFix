@@ -1,50 +1,47 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  DestroyRef,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LivePitch } from '../../listening/live-pitch';
 import { MicrophoneHelp } from '../../listening/microphone-help/microphone-help';
 import { ReferenceTone } from '../../reference-tone/reference-tone';
 import { VersionLabel } from '../../shared/app-version/version-label';
-import { ScreenWakeLock } from '../../shared/screen-wake-lock';
 import { SUGGESTED_STARTING_RANGE } from '../../vocal-range/vocal-range';
 import { VocalRangeStore } from '../../vocal-range/vocal-range.store';
-import { pickRandomNote } from '../exercises/random-note';
-import { DEFAULT_MATCH_RULES, judgePitch } from '../matching/pitch-judgement';
+import { PracticeSettingsStore } from '../settings/practice-settings.store';
 import { HeadphonesTip } from './headphones-tip/headphones-tip';
 import { PitchGraph } from './pitch-graph/pitch-graph';
+import { SessionRunner } from './session-runner';
+import { SessionSummary } from './session-summary/session-summary';
 import { TuningMeter } from './tuning-meter/tuning-meter';
 
 @Component({
   selector: 'app-practice-screen',
-  imports: [RouterLink, VersionLabel, PitchGraph, TuningMeter, HeadphonesTip, MicrophoneHelp],
+  imports: [
+    RouterLink,
+    VersionLabel,
+    PitchGraph,
+    TuningMeter,
+    SessionSummary,
+    HeadphonesTip,
+    MicrophoneHelp,
+  ],
+  providers: [SessionRunner],
   templateUrl: './practice-screen.html',
   styleUrl: './practice-screen.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PracticeScreen {
-  private readonly wakeLock = inject(ScreenWakeLock);
-  private readonly referenceTone = inject(ReferenceTone);
   private readonly rangeStore = inject(VocalRangeStore);
+  private readonly tonePlaying = inject(ReferenceTone).playing;
+  protected readonly session = inject(SessionRunner);
   protected readonly livePitch = inject(LivePitch);
+  protected readonly settings = inject(PracticeSettingsStore).settings;
   /** The route guard ensures a saved range; the fallback only covers it being cleared meanwhile. */
   protected readonly range = computed(() => this.rangeStore.range() ?? SUGGESTED_STARTING_RANGE);
 
-  protected readonly rules = DEFAULT_MATCH_RULES;
-  protected readonly target = signal(
-    pickRandomNote(this.range().lowest, this.range().highest, null),
-  );
   protected readonly reading = this.livePitch.reading;
-  protected readonly tonePlaying = this.referenceTone.playing;
-  protected readonly judgement = computed(() => {
-    const reading = this.reading();
-    return reading ? judgePitch(reading.hz, this.target(), this.rules) : null;
-  });
+  protected readonly inSession = computed(() =>
+    ['singing', 'matched'].includes(this.session.phase()),
+  );
 
   protected readonly showDiagnostics = new URLSearchParams(location.search).has('debug');
   protected readonly rawFrame = this.livePitch.rawFrame;
@@ -56,47 +53,19 @@ export class PracticeScreen {
     if (this.tonePlaying()) {
       return 'Listen…';
     }
-    switch (this.status()) {
-      case 'starting':
-        return 'Waiting for the microphone…';
-      case 'on':
-        return 'Now sing the note';
-      case 'denied':
-      case 'unsupported':
-      case 'unavailable':
-        return "The microphone isn't working yet";
+    if (this.status() === 'starting') {
+      return 'Waiting for the microphone…';
+    }
+    if (this.needsHelp()) {
+      return "The microphone isn't working yet";
+    }
+    switch (this.session.phase()) {
+      case 'singing':
+        return 'Now sing it and hold it';
+      case 'finished':
+        return 'Session complete';
       default:
-        return 'Play the note, then tap Start';
+        return `Tap Start for ${this.session.total} notes`;
     }
   });
-
-  constructor() {
-    inject(DestroyRef).onDestroy(() => {
-      this.stop();
-      this.referenceTone.stop();
-    });
-  }
-
-  protected playNote(): void {
-    void this.referenceTone.play(this.target());
-  }
-
-  protected newNote(): void {
-    this.target.update((previous) =>
-      pickRandomNote(this.range().lowest, this.range().highest, previous),
-    );
-    this.playNote();
-  }
-
-  protected async start(): Promise<void> {
-    await this.livePitch.start();
-    if (this.livePitch.listening()) {
-      this.wakeLock.keepAwake();
-    }
-  }
-
-  protected stop(): void {
-    this.livePitch.stop();
-    this.wakeLock.allowSleep();
-  }
 }

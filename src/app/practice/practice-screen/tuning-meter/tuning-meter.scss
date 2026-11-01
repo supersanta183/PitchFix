@@ -3,7 +3,8 @@
   display: grid;
   gap: 0.25rem;
 
-  &[data-verdict='on-pitch'] {
+  &[data-verdict='on-pitch'],
+  &[data-verdict='matched'] {
     --verdict-color: var(--good);
   }
 
@@ -50,6 +51,19 @@
   border-radius: 50%;
   background: var(--verdict-color);
   transition: left 80ms linear;
+}
+
+.hold {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-raised);
+  overflow: hidden;
+}
+
+.hold-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--good);
 }
 
 .labels {
