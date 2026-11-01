@@ -6,9 +6,19 @@ import {
 } from '../pitch/pitch-math';
 import { PitchFrame } from './pitch-frame';
 
+/**
+ * Starting a phrase needs a clear, loud enough voice. Once singing, less clear
+ * and softer frames are accepted (hysteresis), because clarity drops during
+ * fast slides and loudness drops at the end of a note.
+ */
+export interface VoicingThresholds {
+  readonly clarity: number;
+  readonly rms: number;
+}
+
 export interface StabilizerSettings {
-  readonly minClarity: number;
-  readonly minRms: number;
+  readonly toStartPhrase: VoicingThresholds;
+  readonly toContinuePhrase: VoicingThresholds;
   readonly minHz: number;
   readonly maxHz: number;
   readonly medianWindow: number;
@@ -19,8 +29,8 @@ export interface StabilizerSettings {
 }
 
 export const DEFAULT_STABILIZER_SETTINGS: StabilizerSettings = {
-  minClarity: 0.9,
-  minRms: 0.01,
+  toStartPhrase: { clarity: 0.9, rms: 0.004 },
+  toContinuePhrase: { clarity: 0.8, rms: 0.002 },
   minHz: 65,
   maxHz: 1100,
   medianWindow: 5,
@@ -77,9 +87,10 @@ export class PitchStabilizer {
 
   private isVoiced(frame: PitchFrame): boolean {
     const s = this.settings;
+    const thresholds = this.stableHz === null ? s.toStartPhrase : s.toContinuePhrase;
     return (
-      frame.rms >= s.minRms &&
-      frame.clarity >= s.minClarity &&
+      frame.rms >= thresholds.rms &&
+      frame.clarity >= thresholds.clarity &&
       frame.hz >= s.minHz &&
       frame.hz <= s.maxHz
     );

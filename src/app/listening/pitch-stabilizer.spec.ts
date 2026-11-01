@@ -44,6 +44,30 @@ describe('PitchStabilizer', () => {
     });
   });
 
+  describe('while the singer is mid-phrase', () => {
+    const blurry = (hz: number): PitchFrame => ({ hz, clarity: 0.83, rms: 0.1 });
+    const fading = (hz: number): PitchFrame => ({ hz, clarity: 0.97, rms: 0.003 });
+
+    it('keeps following through less clear frames, such as during a fast slide', () => {
+      const outputs = sing(stabilizer, [...repeat(voiced(220), 6), ...repeat(blurry(233), 6)]);
+      expect(outputs.slice(6).every((hz) => hz !== null)).toBe(true);
+      expect(outputs.at(-1)).toBeCloseTo(233, 6);
+    });
+
+    it('keeps following as the voice gets softer', () => {
+      const outputs = sing(stabilizer, [...repeat(voiced(220), 6), ...repeat(fading(220), 4)]);
+      expect(outputs.at(-1)).toBeCloseTo(220, 6);
+    });
+
+    it('does not start a new phrase from a less clear frame', () => {
+      expect(stabilizer.next(blurry(220), 0)).toBeNull();
+    });
+
+    it('does not start a new phrase from a very soft frame', () => {
+      expect(stabilizer.next(fading(220), 0)).toBeNull();
+    });
+  });
+
   it('smooths away a single glitchy frame', () => {
     const frames = [...repeat(voiced(220), 6), voiced(300), ...repeat(voiced(220), 2)];
     const outputs = sing(stabilizer, frames);

@@ -18,6 +18,12 @@
   </section>
 
   <footer class="controls">
+    @if (showDiagnostics && rawFrame(); as frame) {
+      <p class="diagnostics">
+        loudness {{ frame.rms.toFixed(4) }} · clarity {{ frame.clarity.toFixed(2) }} ·
+        {{ frame.hz.toFixed(1) }} Hz
+      </p>
+    }
     @if (livePitch.listening()) {
       <button type="button" class="button secondary" (click)="stop()">Stop</button>
     } @else {

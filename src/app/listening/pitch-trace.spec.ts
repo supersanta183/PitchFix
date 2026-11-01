@@ -17,6 +17,39 @@ describe('PitchTrace', () => {
     expect(trace.points.map((p) => p.atMs)).toEqual([500, 1200]);
   });
 
+  describe('splitting into strokes for drawing', () => {
+    it('joins the line across short dropouts', () => {
+      const trace = new PitchTrace(1000);
+      trace.add(0, 220);
+      trace.add(16, null);
+      trace.add(32, null);
+      trace.add(48, 222);
+      expect(trace.strokes(150).map((s) => s.map((p) => p.hz))).toEqual([[220, 222]]);
+    });
+
+    it('breaks the line at real pauses', () => {
+      const trace = new PitchTrace(1000);
+      trace.add(0, 220);
+      trace.add(100, null);
+      trace.add(400, 330);
+      expect(trace.strokes(150).map((s) => s.map((p) => p.hz))).toEqual([[220], [330]]);
+    });
+
+    it('has no strokes while silent', () => {
+      const trace = new PitchTrace(1000);
+      trace.add(0, null);
+      expect(trace.strokes(150)).toEqual([]);
+    });
+  });
+
+  it('remembers the most recent sung point through silence', () => {
+    const trace = new PitchTrace(1000);
+    expect(trace.lastVoiced()).toBeNull();
+    trace.add(0, 220);
+    trace.add(16, null);
+    expect(trace.lastVoiced()).toEqual({ atMs: 0, hz: 220 });
+  });
+
   it('can be cleared', () => {
     const trace = new PitchTrace(1000);
     trace.add(0, 220);

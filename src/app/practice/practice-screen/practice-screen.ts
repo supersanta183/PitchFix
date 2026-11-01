@@ -16,6 +16,8 @@ export class PracticeScreen {
   protected readonly livePitch = inject(LivePitch);
 
   protected readonly reading = this.livePitch.reading;
+  protected readonly showDiagnostics = new URLSearchParams(location.search).has('debug');
+  protected readonly rawFrame = this.livePitch.rawFrame;
   protected readonly status = this.livePitch.microphoneStatus;
   protected readonly needsHelp = computed(() =>
     ['denied', 'unsupported', 'unavailable'].includes(this.status()),

@@ -20,6 +20,7 @@ const NOW_INSET_PX = 20;
 const LABEL_GUTTER_PX = 36;
 const VIEWPORT_EASING = 0.12;
 const REDUCED_MOTION_FRAME_MS = 125;
+const MAX_BRIDGED_GAP_MS = 150;
 
 interface GraphColors {
   grid: string;
@@ -100,8 +101,8 @@ export class PitchGraph {
   };
 
   private moveViewport(): void {
-    const latest = this.trace().points.at(-1);
-    if (latest?.hz == null) {
+    const latest = this.trace().lastVoiced();
+    if (!latest) {
       return;
     }
     const target = this.viewport.follow(frequencyToMidi(latest.hz));
@@ -158,28 +159,27 @@ export class PitchGraph {
     context.lineWidth = 4;
     context.lineJoin = 'round';
     context.lineCap = 'round';
+    const xFor = (atMs: number) => nowX - (latest.atMs - atMs) * pxPerMs;
+    const yFor = (hz: number) => this.viewport.yFor(frequencyToMidi(hz), height);
+
     context.beginPath();
-    let penDown = false;
-    for (const point of points) {
-      const x = nowX - (latest.atMs - point.atMs) * pxPerMs;
-      if (point.hz === null || x < LABEL_GUTTER_PX) {
-        penDown = false;
-        continue;
-      }
-      const y = this.viewport.yFor(frequencyToMidi(point.hz), height);
-      if (penDown) {
+    for (const stroke of trace.strokes(MAX_BRIDGED_GAP_MS)) {
+      const visible = stroke.filter((point) => xFor(point.atMs) >= LABEL_GUTTER_PX);
+      visible.forEach((point, i) => {
+        const [x, y] = [xFor(point.atMs), yFor(point.hz)];
+        if (i === 0) {
+          context.moveTo(x, y);
+        }
         context.lineTo(x, y);
-      } else {
-        context.moveTo(x, y);
-        penDown = true;
-      }
+      });
     }
     context.stroke();
 
-    if (latest.hz !== null) {
+    const lastVoiced = trace.lastVoiced();
+    if (lastVoiced && latest.atMs - lastVoiced.atMs <= MAX_BRIDGED_GAP_MS) {
       context.fillStyle = colors.line;
       context.beginPath();
-      context.arc(nowX, this.viewport.yFor(frequencyToMidi(latest.hz), height), 8, 0, Math.PI * 2);
+      context.arc(xFor(lastVoiced.atMs), yFor(lastVoiced.hz), 8, 0, Math.PI * 2);
       context.fill();
     }
   }

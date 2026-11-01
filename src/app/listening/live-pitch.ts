@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { Note } from '../pitch/note';
 import { SharedAudioContext } from '../shared/audio/shared-audio-context';
 import { Microphone } from './microphone';
+import { PitchFrame } from './pitch-frame';
 import { PitchStabilizer } from './pitch-stabilizer';
 import { PitchTrace } from './pitch-trace';
 import { VoicePitchDetector } from './voice-pitch-detector';
@@ -9,6 +10,8 @@ import { VoicePitchDetector } from './voice-pitch-detector';
 /** ~43 ms at 48 kHz: long enough for low male voices, short enough to feel live. */
 const ANALYSIS_BUFFER_SIZE = 2048;
 const TRACE_WINDOW_MS = 6000;
+/** Keeps the note readout steady through detector hiccups instead of flickering. */
+const READOUT_HOLD_MS = 150;
 
 export interface LivePitchReading {
   readonly hz: number;
@@ -25,11 +28,15 @@ export class LivePitch {
   private readonly stabilizer = new PitchStabilizer();
   private readonly samples = new Float32Array(ANALYSIS_BUFFER_SIZE);
   private readonly readingSignal = signal<LivePitchReading | null>(null);
+  private readonly rawFrameSignal = signal<PitchFrame | null>(null);
+  private lastVoicedAtMs = Number.NEGATIVE_INFINITY;
   private analyser: AnalyserNode | null = null;
   private frameRequest: number | null = null;
 
   readonly trace = new PitchTrace(TRACE_WINDOW_MS);
   readonly reading = this.readingSignal.asReadonly();
+  /** Unfiltered detector output, for the ?debug diagnostics readout. */
+  readonly rawFrame = this.rawFrameSignal.asReadonly();
   readonly microphoneStatus = this.microphone.status;
   readonly listening = computed(() => this.microphone.status() === 'on');
 
@@ -60,6 +67,7 @@ export class LivePitch {
     this.analyser = null;
     this.microphone.close();
     this.readingSignal.set(null);
+    this.rawFrameSignal.set(null);
   }
 
   private readonly analyseFrame = (nowMs: number): void => {
@@ -72,7 +80,13 @@ export class LivePitch {
     const hz = this.stabilizer.next(frame, nowMs);
 
     this.trace.add(nowMs, hz);
-    this.readingSignal.set(hz === null ? null : toReading(hz));
+    this.rawFrameSignal.set(frame);
+    if (hz !== null) {
+      this.lastVoicedAtMs = nowMs;
+      this.readingSignal.set(toReading(hz));
+    } else if (nowMs - this.lastVoicedAtMs > READOUT_HOLD_MS) {
+      this.readingSignal.set(null);
+    }
     this.frameRequest = requestAnimationFrame(this.analyseFrame);
   };
 }
