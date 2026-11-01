@@ -51,5 +51,5 @@ Thumbs.db
 .vercel
 .env*
 
-# Generated at build time by scripts/stamp-build.mjs
-/src/app/shared/build-stamp/build-info.generated.ts
+# Generated at build time by scripts/stamp-version.mjs
+/src/app/shared/app-version/app-version.generated.ts

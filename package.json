@@ -1,9 +1,9 @@
 {
   "name": "pitchfix",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
-    "stamp": "node scripts/stamp-build.mjs",
+    "stamp": "node scripts/stamp-version.mjs",
     "prestart": "npm run stamp",
     "start": "ng serve",
     "prebuild": "npm run stamp",
@@ -12,7 +12,9 @@
     "pretest": "npm run stamp",
     "test": "ng test",
     "pretest:e2e": "npm run stamp",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "release": "npm version minor -m \"Release v%s\" && npx vercel --prod --yes",
+    "release:major": "npm version major -m \"Release v%s\" && npx vercel --prod --yes"
   },
   "private": true,
   "packageManager": "npm@11.19.1",
